@@ -1,41 +1,44 @@
 using API_Aggregation.Clients;
+using API_Aggregation.Services;
 using Polly.Extensions.Http;
 using Polly;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Register AggregationService
+builder.Services.AddTransient<AggregationService>();
+
+builder.Services.AddHttpClient<WeatherApiClient>(client =>
+{
+    client.BaseAddress = new Uri("https://wttr.in/");
+}).AddPolicyHandler(GetRetryPolicy())
+.AddPolicyHandler(GetFallbackPolicy());
+
+builder.Services.AddHttpClient<CatFactApiClient>(client =>
+{
+    client.BaseAddress = new Uri("https://meowfacts.herokuapp.com/");
+}).AddPolicyHandler(GetRetryPolicy())
+.AddPolicyHandler(GetFallbackPolicy());
+
+builder.Services.AddHttpClient<ArtApiClient>(client =>
+{
+    client.BaseAddress = new Uri("https://api.artic.edu/");
+}).AddPolicyHandler(GetRetryPolicy())
+.AddPolicyHandler(GetFallbackPolicy());
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-builder.Services.AddHttpClient<WeatherApiClient>(client =>
-{
-    client.BaseAddress = new Uri("https://openweathermap.org/api");
-}).AddPolicyHandler(GetRetryPolicy())
-.AddPolicyHandler(GetFallbackPolicy());
-
-builder.Services.AddHttpClient<NewsApiClient>(client =>
-{
-    client.BaseAddress = new Uri("https://newsapi.org/");
-}).AddPolicyHandler(GetRetryPolicy())
-.AddPolicyHandler(GetFallbackPolicy());
-
-builder.Services.AddHttpClient<SocialMediaApiClient>(client =>
-{
-    client.BaseAddress = new Uri("https://developer.twitter.com/en/docs/twitter-api");
-}).AddPolicyHandler(GetRetryPolicy())
-.AddPolicyHandler(GetFallbackPolicy());
 
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {
@@ -55,10 +58,8 @@ static IAsyncPolicy<HttpResponseMessage> GetFallbackPolicy()
             Content = new StringContent("Fallback response")
         });
 }
+
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

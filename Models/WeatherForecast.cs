@@ -2,12 +2,9 @@ namespace API_Aggregation.Models
 {
     public class WeatherForecast
     {
-        public DateOnly Date { get; set; }
-
-        public int TemperatureC { get; set; }
-
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-
-        public string? Summary { get; set; }
+        public double temp_C { get; set; }
+        public int humidity { get; set; }
+        public double windspeedKmph { get; set; }
+        public int uvIndex { get; set; }
     }
 }

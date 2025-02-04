@@ -16,11 +16,11 @@ namespace API_Aggregation.Controllers
         }
 
         [HttpGet("aggregate")]
-        public async Task<IActionResult> GetAggregatedData([FromQuery] string city, [FromQuery] string country, [FromQuery] string username)
+        public async Task<IActionResult> GetAggregatedData([FromQuery] string city, [FromQuery] string query,[FromQuery] int count,[FromQuery] string sortBy, [FromQuery] string filterBy)
         {
             try
             {
-                var data = await _aggregationService.GetAggregatedDataAsync( city,  country,  username);
+                var data = await _aggregationService.GetAggregatedDataAsync(city, query,count, sortBy, filterBy);
                 return Ok(data);
             }
             catch (Exception ex)
