@@ -2,6 +2,7 @@ using API_Aggregation.Clients;
 using API_Aggregation.Services;
 using Polly.Extensions.Http;
 using Polly;
+using Microsoft.Extensions.Caching.Memory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,8 @@ builder.Services.AddTransient<AggregationService>();
 builder.Services.AddTransient<IWeatherApiClient, WeatherApiClient>();
 builder.Services.AddTransient<ICatFactApiClient, CatFactApiClient>();
 builder.Services.AddTransient<IArtApiClient, ArtApiClient>();
+builder.Services.AddSingleton<IMemoryCache, MemoryCache>();
+builder.Services.AddSingleton<RequestStatisticsService>();
 
 builder.Services.AddHttpClient<IWeatherApiClient, WeatherApiClient>(client =>
 {

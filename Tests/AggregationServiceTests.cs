@@ -5,6 +5,7 @@ using Moq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace API_Aggregation.Tests
 {
@@ -13,6 +14,8 @@ namespace API_Aggregation.Tests
         private readonly Mock<IWeatherApiClient> _mockWeatherApiClient;
         private readonly Mock<ICatFactApiClient> _mockCatFactApiClient;
         private readonly Mock<IArtApiClient> _mockArtApiClient;
+        private readonly Mock<IMemoryCache> _mockCache;
+        private readonly Mock<RequestStatisticsService> _mockRequestStatisticsService;
         private readonly AggregationService _aggregationService;
 
         public AggregationServiceTests()
@@ -20,10 +23,14 @@ namespace API_Aggregation.Tests
             _mockWeatherApiClient = new Mock<IWeatherApiClient>();
             _mockCatFactApiClient = new Mock<ICatFactApiClient>();
             _mockArtApiClient = new Mock<IArtApiClient>();
+            _mockCache = new Mock<IMemoryCache>();
+            _mockRequestStatisticsService = new Mock<RequestStatisticsService>();
             _aggregationService = new AggregationService(
                 _mockWeatherApiClient.Object,
                 _mockCatFactApiClient.Object,
-                _mockArtApiClient.Object);
+                _mockArtApiClient.Object,
+                _mockCache.Object,
+                _mockRequestStatisticsService.Object);
         }
 
         [Fact]
@@ -40,6 +47,18 @@ namespace API_Aggregation.Tests
             _mockWeatherApiClient.Setup(x => x.GetWeatherAsync(city)).ReturnsAsync(weatherForecast);
             _mockCatFactApiClient.Setup(x => x.GetCatFactsAsync(count)).ReturnsAsync(catFacts);
             _mockArtApiClient.Setup(x => x.GetArtworksAsync(query)).ReturnsAsync(artwork);
+
+            object weatherCacheEntry = null;
+            _mockCache.Setup(x => x.TryGetValue(It.IsAny<object>(), out weatherCacheEntry)).Returns(false);
+            _mockCache.Setup(x => x.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>());
+
+            object catFactsCacheEntry = null;
+            _mockCache.Setup(x => x.TryGetValue(It.IsAny<object>(), out catFactsCacheEntry)).Returns(false);
+            _mockCache.Setup(x => x.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>());
+
+            object artworkCacheEntry = null;
+            _mockCache.Setup(x => x.TryGetValue(It.IsAny<object>(), out artworkCacheEntry)).Returns(false);
+            _mockCache.Setup(x => x.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>());
 
             // Act
             var result = await _aggregationService.GetAggregatedDataAsync(city, query, count);
@@ -69,6 +88,18 @@ namespace API_Aggregation.Tests
             _mockCatFactApiClient.Setup(x => x.GetCatFactsAsync(count)).ReturnsAsync(catFacts);
             _mockArtApiClient.Setup(x => x.GetArtworksAsync(query)).ReturnsAsync(artwork);
 
+            object weatherCacheEntry = null;
+            _mockCache.Setup(x => x.TryGetValue(It.IsAny<object>(), out weatherCacheEntry)).Returns(false);
+            _mockCache.Setup(x => x.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>());
+
+            object catFactsCacheEntry = null;
+            _mockCache.Setup(x => x.TryGetValue(It.IsAny<object>(), out catFactsCacheEntry)).Returns(false);
+            _mockCache.Setup(x => x.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>());
+
+            object artworkCacheEntry = null;
+            _mockCache.Setup(x => x.TryGetValue(It.IsAny<object>(), out artworkCacheEntry)).Returns(false);
+            _mockCache.Setup(x => x.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>());
+
             // Act
             var result = await _aggregationService.GetAggregatedDataAsync(city, query, count, filterBy: filterBy);
 
@@ -97,6 +128,18 @@ namespace API_Aggregation.Tests
             _mockWeatherApiClient.Setup(x => x.GetWeatherAsync(city)).ReturnsAsync(weatherForecast);
             _mockCatFactApiClient.Setup(x => x.GetCatFactsAsync(count)).ReturnsAsync(catFacts);
             _mockArtApiClient.Setup(x => x.GetArtworksAsync(query)).ReturnsAsync(artwork);
+
+            object weatherCacheEntry = null;
+            _mockCache.Setup(x => x.TryGetValue(It.IsAny<object>(), out weatherCacheEntry)).Returns(false);
+            _mockCache.Setup(x => x.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>());
+
+            object catFactsCacheEntry = null;
+            _mockCache.Setup(x => x.TryGetValue(It.IsAny<object>(), out catFactsCacheEntry)).Returns(false);
+            _mockCache.Setup(x => x.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>());
+
+            object artworkCacheEntry = null;
+            _mockCache.Setup(x => x.TryGetValue(It.IsAny<object>(), out artworkCacheEntry)).Returns(false);
+            _mockCache.Setup(x => x.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>());
 
             // Act
             var result = await _aggregationService.GetAggregatedDataAsync(city, query, count, sortBy: sortBy);
