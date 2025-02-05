@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 
 namespace API_Aggregation.Clients
 {
-    public class ArtApiClient
+    public class ArtApiClient : IArtApiClient
     {
         private readonly HttpClient _httpClient;
 

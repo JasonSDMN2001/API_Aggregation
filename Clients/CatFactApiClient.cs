@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 
 namespace API_Aggregation.Clients
 {
-    public class CatFactApiClient
+    public class CatFactApiClient : ICatFactApiClient
     {
 
         private readonly HttpClient _httpClient;

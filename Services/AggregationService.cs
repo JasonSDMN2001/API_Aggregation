@@ -6,15 +6,14 @@ namespace API_Aggregation.Services
 {
     public class AggregationService
     {
-        private readonly WeatherApiClient _weatherApiClient;
-        private readonly CatFactApiClient _catFactApiClient;
-        private readonly ArtApiClient _artApiClient;
+        private readonly IWeatherApiClient _weatherApiClient;
+        private readonly ICatFactApiClient _catFactApiClient;
+        private readonly IArtApiClient _artApiClient;
 
         public AggregationService(
-            WeatherApiClient weatherApiClient,
-            CatFactApiClient catFactApiClient,
-            ArtApiClient artApiClient
-            )
+            IWeatherApiClient weatherApiClient,
+            ICatFactApiClient catFactApiClient,
+            IArtApiClient artApiClient)
         {
             _weatherApiClient = weatherApiClient;
             _catFactApiClient = catFactApiClient;
@@ -23,40 +22,35 @@ namespace API_Aggregation.Services
 
         public async Task<AggregatedData> GetAggregatedDataAsync(string city, string query, int count, string sortBy = null, string filterBy = null)
         {
-            var weatherTask = _weatherApiClient.GetWeatherAsync(city);
-            var catTask = _catFactApiClient.GetCatFactsAsync(count);
-            var artTask = _artApiClient.GetArtworksAsync(query);
-
-            await Task.WhenAll(weatherTask, catTask, artTask);
-
-            var aggregatedData = new AggregatedData
-            {
-                Weather = await weatherTask,
-                CatFact = await catTask,
-                Artwork = await artTask 
-            };
+            var weather = await _weatherApiClient.GetWeatherAsync(city);
+            var catFacts = await _catFactApiClient.GetCatFactsAsync(count);
+            var artwork = await _artApiClient.GetArtworksAsync(query);
 
             // Apply filtering
             if (!string.IsNullOrEmpty(filterBy))
             {
-                aggregatedData.CatFact = aggregatedData.CatFact.Where(cf => cf.Fact.Contains(filterBy, StringComparison.OrdinalIgnoreCase)).ToList();
+                catFacts = catFacts.Where(cf => cf.Fact.Contains(filterBy)).ToList();
             }
 
             // Apply sorting
             if (!string.IsNullOrEmpty(sortBy))
             {
-                switch (sortBy.ToLower())
+                if (sortBy == "length asc")
                 {
-                    case "asc":
-                        aggregatedData.CatFact = aggregatedData.CatFact.OrderBy(a => a.Fact.Length).ToList();
-                        break;
-                    case "desc":
-                        aggregatedData.CatFact = aggregatedData.CatFact.OrderByDescending(a => a.Fact.Length).ToList();
-                        break;
+                    catFacts = catFacts.OrderBy(cf => cf.Fact.Length).ToList();
+                }
+                else if (sortBy == "length desc")
+                {
+                    catFacts = catFacts.OrderByDescending(cf => cf.Fact.Length).ToList();
                 }
             }
 
-            return aggregatedData;
+            return new AggregatedData
+            {
+                Weather = weather,
+                CatFact = catFacts,
+                Artwork = artwork
+            };
         }
     }
 }

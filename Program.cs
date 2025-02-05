@@ -11,26 +11,29 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register AggregationService
+// Register AggregationService and its dependencies
 builder.Services.AddTransient<AggregationService>();
+builder.Services.AddTransient<IWeatherApiClient, WeatherApiClient>();
+builder.Services.AddTransient<ICatFactApiClient, CatFactApiClient>();
+builder.Services.AddTransient<IArtApiClient, ArtApiClient>();
 
-builder.Services.AddHttpClient<WeatherApiClient>(client =>
+builder.Services.AddHttpClient<IWeatherApiClient, WeatherApiClient>(client =>
 {
     client.BaseAddress = new Uri("https://wttr.in/");
 }).AddPolicyHandler(GetRetryPolicy())
-.AddPolicyHandler(GetFallbackPolicy());
+  .AddPolicyHandler(GetFallbackPolicy());
 
-builder.Services.AddHttpClient<CatFactApiClient>(client =>
+builder.Services.AddHttpClient<ICatFactApiClient, CatFactApiClient>(client =>
 {
     client.BaseAddress = new Uri("https://meowfacts.herokuapp.com/");
 }).AddPolicyHandler(GetRetryPolicy())
-.AddPolicyHandler(GetFallbackPolicy());
+  .AddPolicyHandler(GetFallbackPolicy());
 
-builder.Services.AddHttpClient<ArtApiClient>(client =>
+builder.Services.AddHttpClient<IArtApiClient, ArtApiClient>(client =>
 {
     client.BaseAddress = new Uri("https://api.artic.edu/");
 }).AddPolicyHandler(GetRetryPolicy())
-.AddPolicyHandler(GetFallbackPolicy());
+  .AddPolicyHandler(GetFallbackPolicy());
 
 var app = builder.Build();
 

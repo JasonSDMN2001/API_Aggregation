@@ -10,16 +10,16 @@ namespace API_Aggregation.Tests
 {
     public class AggregationServiceTests
     {
-        private readonly Mock<WeatherApiClient> _mockWeatherApiClient;
-        private readonly Mock<CatFactApiClient> _mockCatFactApiClient;
-        private readonly Mock<ArtApiClient> _mockArtApiClient;
+        private readonly Mock<IWeatherApiClient> _mockWeatherApiClient;
+        private readonly Mock<ICatFactApiClient> _mockCatFactApiClient;
+        private readonly Mock<IArtApiClient> _mockArtApiClient;
         private readonly AggregationService _aggregationService;
 
         public AggregationServiceTests()
         {
-            _mockWeatherApiClient = new Mock<WeatherApiClient>(null);
-            _mockCatFactApiClient = new Mock<CatFactApiClient>(null);
-            _mockArtApiClient = new Mock<ArtApiClient>(null);
+            _mockWeatherApiClient = new Mock<IWeatherApiClient>();
+            _mockCatFactApiClient = new Mock<ICatFactApiClient>();
+            _mockArtApiClient = new Mock<IArtApiClient>();
             _aggregationService = new AggregationService(
                 _mockWeatherApiClient.Object,
                 _mockCatFactApiClient.Object,
@@ -51,14 +51,16 @@ namespace API_Aggregation.Tests
             Assert.Equal(artwork, result.Artwork);
         }
 
-        [Fact]
-        public async Task GetAggregatedDataAsync_FiltersCatFacts()
+        [Theory]
+        [InlineData("TestFact1", 1)]
+        [InlineData("TestFact2", 1)]
+        [InlineData("NonExistentFact", 0)]
+        public async Task GetAggregatedDataAsync_FiltersCatFacts(string filterBy, int expectedCount)
         {
             // Arrange
             var city = "TestCity";
             var query = "TestQuery";
             var count = 5;
-            var filterBy = "TestFact1";
             var weatherForecast = new WeatherForecast { temp_C = 20, humidity = 50, windspeedKmph = 10, uvIndex = 5 };
             var catFacts = new List<CatFact> { new CatFact { Fact = "TestFact1" }, new CatFact { Fact = "TestFact2" } };
             var artwork = new Artwork { title = "TestArtwork" };
@@ -72,20 +74,24 @@ namespace API_Aggregation.Tests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result.CatFact);
-            Assert.Equal("TestFact1", result.CatFact[0].Fact);
+            Assert.Equal(expectedCount, result.CatFact.Count);
+            if (expectedCount > 0)
+            {
+                Assert.Equal(filterBy, result.CatFact[0].Fact);
+            }
         }
 
-        [Fact]
-        public async Task GetAggregatedDataAsync_SortsCatFactsByLength()
+        [Theory]
+        [InlineData("length asc", "TestFact1")]
+        [InlineData("length desc", "LongLengthTestFact2")]
+        public async Task GetAggregatedDataAsync_SortsCatFactsByLength(string sortBy, string expectedFirstFact)
         {
             // Arrange
             var city = "TestCity";
             var query = "TestQuery";
             var count = 5;
-            var sortBy = "asc";
             var weatherForecast = new WeatherForecast { temp_C = 20, humidity = 50, windspeedKmph = 10, uvIndex = 5 };
-            var catFacts = new List<CatFact> { new CatFact { Fact = "TestFact2" }, new CatFact { Fact = "TestFact1" } };
+            var catFacts = new List<CatFact> { new CatFact { Fact = "LongLengthTestFact2" }, new CatFact { Fact = "TestFact1" } };
             var artwork = new Artwork { title = "TestArtwork" };
 
             _mockWeatherApiClient.Setup(x => x.GetWeatherAsync(city)).ReturnsAsync(weatherForecast);
@@ -98,8 +104,7 @@ namespace API_Aggregation.Tests
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.CatFact.Count);
-            Assert.Equal("TestFact1", result.CatFact[0].Fact);
-            Assert.Equal("TestFact2", result.CatFact[1].Fact);
+            Assert.Equal(expectedFirstFact, result.CatFact[0].Fact);
         }
     }
 }

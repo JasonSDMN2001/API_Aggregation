@@ -6,7 +6,7 @@ using System;
 
 namespace API_Aggregation.Clients
 {
-    public class WeatherApiClient
+    public class WeatherApiClient : IWeatherApiClient
     {
         private readonly HttpClient _httpClient;
         public WeatherApiClient(HttpClient httpClient)
